@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"math/rand"
 )
 
 // Mine
@@ -14,6 +15,21 @@ func debugEncryptDecrypt(masterKey, iv, password string) (string, string) {
 	decrypted := decrypt(encrypted, masterKey, iv)
 
 	return encrypted, decrypted
+}
+
+func keyToCipher(key string) (cipher.Block, error) {
+	return aes.NewCipher([]byte(key))
+}
+
+func generateRandomKey(length int) (string, error) {
+	randReader := rand.New(rand.NewSource(0))
+	buf := make([]byte, length)
+	_, err := randReader.Read(buf)
+	if err != nil {
+		return "", err
+	}
+	hex := fmt.Sprintf("%x", buf)
+	return hex, nil
 }
 
 // Boot Dev
