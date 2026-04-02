@@ -11,6 +11,31 @@ import (
 	"strings"
 )
 
+// Chapter 6.1
+func cryptStreamCipher(textCh, keyCh <-chan byte, result chan<- byte) {
+	defer close(result)
+
+	for {
+		text, ok1 := <-textCh
+		key, ok2 := <-keyCh
+
+		if !ok1 || !ok2 {
+			return
+		}
+
+		result <- text ^ key
+	}
+}
+
+// Chapter 5.4
+func cryptXOR(plaintext, key []byte) []byte {
+	result := make([]byte, len(plaintext))
+	for i := range plaintext {
+		result[i] = plaintext[i] ^ key[i]
+	}
+	return result
+}
+
 // Chapter 4.3
 func cryptCaesar(text string, key int) string {
 	final := ""
@@ -25,7 +50,7 @@ func decryptCaesar(ciphertext string, key int) string {
 }
 
 func encryptCaesar(ciphertext string, key int) string {
-	return cryptCaesar(ciphertext, -key)
+	return cryptCaesar(ciphertext, key)
 }
 
 func getOffsetChar(c rune, offset int) string {
