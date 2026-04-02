@@ -6,6 +6,22 @@ import (
 	"errors"
 )
 
+const (
+	typeAES = iota
+	typeDES
+)
+
+// Chapter 7.1
+func getCipherTypeName(cipherType int) string {
+	switch cipherType {
+	case typeAES:
+		return "AES"
+	case typeDES:
+		return "DES"
+	}
+	return "unknown"
+}
+
 // Chapter 6.1
 func encryptStreamCipher(plaintext, key []byte) ([]byte, error) {
 	if len(plaintext) != len(key) {

@@ -3,13 +3,55 @@ package main
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/des"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"math"
 	"math/rand"
 	"strings"
 )
+
+// Chapter 7.8
+func deriveRoundKey(masterKey [4]byte, roundNumber int) [4]byte {
+	for i, j := range masterKey {
+		masterKey[i] = j ^ byte(roundNumber)
+	}
+	return masterKey
+}
+
+// Chapter 7.4
+func padWithZeros(block []byte, desiredSize int) []byte {
+	for {
+		if len(block) == desiredSize {
+			return block
+		}
+		block = append(block, 0)
+	}
+	// OR return append(block, make([]byte, desiredSize-len(block))...)
+}
+
+// Chapter 7.1
+func getBlockSize(keyLen, cipherType int) (int, error) {
+	buf := make([]byte, keyLen)
+	switch cipherType {
+	case typeAES:
+		block, err := aes.NewCipher(buf)
+		if err != nil {
+			return 0, err
+		}
+		return block.BlockSize(), nil
+	case typeDES:
+		block, err := des.NewCipher(buf)
+		if err != nil {
+			return 0, err
+		}
+		return block.BlockSize(), nil
+	default:
+		return 0, errors.New("invalid cipher type")
+	}
+}
 
 // Chapter 6.1
 func cryptStreamCipher(textCh, keyCh <-chan byte, result chan<- byte) {
