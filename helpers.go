@@ -2,14 +2,34 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
 	"errors"
 )
 
+// Chapter 7.1
 const (
 	typeAES = iota
 	typeDES
 )
+
+// Chapter 8.1
+func xor(lhs, rhs []byte) []byte {
+	res := []byte{}
+	for i := range lhs {
+		res = append(res, lhs[i]^rhs[i])
+	}
+	return res
+}
+
+// outputLength should be equal to or less than the length
+// of the left half when used in feistel so that the XOR
+// has sufficient bytes to operate on
+func hash(first, second []byte, outputLength int) []byte {
+	h := sha256.New()
+	h.Write(append(first, second...))
+	return h.Sum(nil)[:outputLength]
+}
 
 // Chapter 7.1
 func getCipherTypeName(cipherType int) string {

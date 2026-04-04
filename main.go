@@ -13,6 +13,20 @@ import (
 	"strings"
 )
 
+// Chapter 8.1
+func feistel(msg []byte, roundKeys [][]byte) []byte {
+	midpoint := len(msg) / 2
+	lhs := msg[:midpoint]
+	rhs := msg[midpoint:]
+
+	for _, round := range roundKeys {
+		nrhs := xor(lhs, hash(rhs, round, len(lhs)))
+		lhs = rhs
+		rhs = nrhs
+	}
+	return append(rhs, lhs...)
+}
+
 // Chapter 7.8
 func deriveRoundKey(masterKey [4]byte, roundNumber int) [4]byte {
 	for i, j := range masterKey {
