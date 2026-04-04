@@ -4,14 +4,52 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/des"
+	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
 	"math"
-	"math/rand"
 	"strings"
 )
+
+func encryptDES(key, plaintext []byte) ([]byte, error) {
+	// Create Block
+	block, err := des.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	// Pad message
+	padded := padMsg(plaintext, block.BlockSize())
+
+	// Creat encrypted slice
+	encrypted := make([]byte, len(padded)+block.BlockSize())
+
+	// Allocate iv at beginning of encrypted
+	// iv must be block size
+	// fill iv
+	iv := encrypted[:block.BlockSize()]
+	_, err = rand.Read(iv)
+	if err != nil {
+		return nil, err
+	}
+	if len(iv) != block.BlockSize() {
+		return nil, errors.New("invalid iv size")
+	}
+
+	// Encrypt from end of iv
+	encrypter := cipher.NewCBCEncrypter(block, iv)
+	encrypter.CryptBlocks(encrypted[block.BlockSize():], padded)
+
+	return encrypted, nil
+}
+
+func padMsg(plaintext []byte, blockSize int) []byte {
+	index := len(plaintext) - (len(plaintext) % blockSize)
+	lastBlock := padWithZerosDES(plaintext[index:], blockSize)
+	fullBlocks := plaintext[:index]
+	return append(fullBlocks, lastBlock...)
+}
 
 // Chapter 8.1
 func feistel(msg []byte, roundKeys [][]byte) []byte {
@@ -131,7 +169,7 @@ func findKey(encrypted []byte, decrypted string) ([]byte, error) {
 }
 
 // Chapter 1.11
-func generateRandomKey(length int) (string, error) {
+/*func generateRandomKey(length int) (string, error) {
 	randReader := rand.New(rand.NewSource(0))
 	buf := make([]byte, length)
 	_, err := randReader.Read(buf)
@@ -140,7 +178,7 @@ func generateRandomKey(length int) (string, error) {
 	}
 	hex := fmt.Sprintf("%x", buf)
 	return hex, nil
-}
+}*/
 
 // Chapter 1.7
 func keyToCipher(key string) (cipher.Block, error) {
