@@ -18,6 +18,27 @@ import (
 	"strings"
 )
 
+// Chapter 11.6
+func getTot(p, q *big.Int) *big.Int {
+	tot := new(big.Int)
+	newP := p.Sub(p, big.NewInt(1))
+	newq := q.Sub(q, big.NewInt(1))
+	return tot.Mul(newP, newq)
+}
+
+func getE(tot *big.Int) *big.Int {
+	totMinusTwo := new(big.Int).Sub(tot, big.NewInt(2))
+
+	e, _ := rand.Int(randReader, totMinusTwo)
+	e.Add(e, big.NewInt(2))
+
+	for gcd(e, tot).Cmp(big.NewInt(1)) != 0 {
+		e, _ = rand.Int(randReader, totMinusTwo)
+		e.Add(e, big.NewInt(2))
+	}
+	return e
+}
+
 // Chapter 11.5
 func generatePrivateNums(keysize int) (*big.Int, *big.Int) {
 	p, _ := getBigPrime(keysize)

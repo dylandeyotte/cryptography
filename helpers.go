@@ -14,6 +14,16 @@ import (
 	mrand "math/rand"
 )
 
+// Chapter 11.6
+func gcd(x, y *big.Int) *big.Int {
+	xCopy := new(big.Int).Set(x)
+	yCopy := new(big.Int).Set(y)
+	for yCopy.Cmp(big.NewInt(0)) != 0 {
+		xCopy, yCopy = yCopy, xCopy.Mod(xCopy, yCopy)
+	}
+	return xCopy
+}
+
 // Chapter 11.5
 func firstNDigits(n big.Int, numDigits int) string {
 	if len(n.String()) < numDigits {
