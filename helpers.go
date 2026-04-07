@@ -2,12 +2,29 @@ package main
 
 import (
 	"bytes"
+	"crypto/aes"
 	"crypto/cipher"
 	"crypto/des"
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
 )
+
+// Chapter 9.1
+func encryptAES(key, plaintext, nonce []byte) (ciphertext []byte, err error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+
+	ciphertext = aesgcm.Seal(nil, nonce, plaintext, nil)
+	return ciphertext, nil
+}
 
 // Chapter 8.5
 func decryptDES(key, ciphertext []byte) ([]byte, error) {

@@ -13,6 +13,19 @@ import (
 	"strings"
 )
 
+// Chapter 9.1
+func decryptAES(key, ciphertext, nonce []byte) (plaintext []byte, err error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+	return cipher.AEAD.Open(gcm, nil, nonce, ciphertext, nil)
+}
+
 func encryptDES(key, plaintext []byte) ([]byte, error) {
 	// Create Block
 	block, err := des.NewCipher(key)
