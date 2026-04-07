@@ -7,13 +7,33 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
 	"math"
+	"math/big"
 	"strings"
 )
+
+// Chapter 11.5
+func generatePrivateNums(keysize int) (*big.Int, *big.Int) {
+	p, _ := getBigPrime(keysize)
+	q, _ := getBigPrime(keysize)
+	return p, q
+}
+
+func getN(p, q *big.Int) *big.Int {
+	n := new(big.Int)
+	return n.Mul(p, q)
+}
+
+// Chapter 11.1
+func encryptRSA(pubKey *rsa.PublicKey, msg []byte) ([]byte, error) {
+	return rsa.EncryptOAEP(sha256.New(), rand.Reader, pubKey, msg, nil)
+}
 
 // Chapter 10.1
 func genKeys() (pubKey *ecdsa.PublicKey, privKey *ecdsa.PrivateKey, err error) {
