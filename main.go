@@ -4,6 +4,8 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/des"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
@@ -12,6 +14,17 @@ import (
 	"math"
 	"strings"
 )
+
+// Chapter 10.1
+func genKeys() (pubKey *ecdsa.PublicKey, privKey *ecdsa.PrivateKey, err error) {
+	curve := elliptic.P256()
+	privKey, err = ecdsa.GenerateKey(curve, rand.Reader)
+	if err != nil {
+		return nil, nil, err
+	}
+	pubKey = &privKey.PublicKey
+	return pubKey, privKey, nil
+}
 
 // Chapter 9.1
 func decryptAES(key, ciphertext, nonce []byte) (plaintext []byte, err error) {
