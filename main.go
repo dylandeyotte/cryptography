@@ -18,6 +18,24 @@ import (
 	"strings"
 )
 
+// Chapter 11.15
+// c = message d = private key n = mod
+func decryptRSA(c, d, n *big.Int) *big.Int {
+	return new(big.Int).Exp(c, d, n)
+}
+
+// Chapter 11.14
+// d = private key
+func getD(e, tot *big.Int) *big.Int {
+	return new(big.Int).ModInverse(e, tot)
+}
+
+// Chapter 11.11
+// m = message e = public key exponent n = public key modulus
+func encryptionFormula(m, e, n *big.Int) *big.Int {
+	return new(big.Int).Exp(m, e, n)
+}
+
 // Chapter 11.6
 func getTot(p, q *big.Int) *big.Int {
 	tot := new(big.Int)
