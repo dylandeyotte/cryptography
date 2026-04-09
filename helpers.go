@@ -125,7 +125,7 @@ func xor(lhs, rhs []byte) []byte {
 // outputLength should be equal to or less than the length
 // of the left half when used in feistel so that the XOR
 // has sufficient bytes to operate on
-func hash(first, second []byte, outputLength int) []byte {
+func hashxor(first, second []byte, outputLength int) []byte {
 	h := sha256.New()
 	h.Write(append(first, second...))
 	return h.Sum(nil)[:outputLength]

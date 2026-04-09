@@ -12,11 +12,51 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"hash"
 	"log"
 	"math"
 	"math/big"
+	"math/bits"
 	"strings"
 )
+
+// Chapter 12.10
+func hashFunc(input []byte) [4]byte {
+	rotated := []uint8{}
+	shifted := []byte{}
+	var final [4]byte
+	for _, b := range input {
+		rotated = append(rotated, bits.RotateLeft8(uint8(b), 3))
+	}
+	for _, n := range rotated {
+		shifted = append(shifted, byte(n)<<2)
+	}
+	for i, bt := range shifted {
+		final[i%4] = bt ^ final[i%4]
+	}
+	return final
+}
+
+// Chapter 12.1
+type hasher struct {
+	hash hash.Hash
+}
+
+func newHasher() *hasher {
+	newHash := sha256.New()
+	return &hasher{
+		hash: newHash,
+	}
+}
+
+func (h *hasher) Write(s string) (int, error) {
+	return h.hash.Write([]byte(s))
+}
+
+func (h *hasher) GetHex() string {
+	s := h.hash.Sum(nil)
+	return hex.EncodeToString(s)
+}
 
 // Chapter 11.15
 // c = message d = private key n = mod
@@ -143,7 +183,7 @@ func feistel(msg []byte, roundKeys [][]byte) []byte {
 	rhs := msg[midpoint:]
 
 	for _, round := range roundKeys {
-		nrhs := xor(lhs, hash(rhs, round, len(lhs)))
+		nrhs := xor(lhs, hashxor(rhs, round, len(lhs)))
 		lhs = rhs
 		rhs = nrhs
 	}
