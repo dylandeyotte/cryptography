@@ -20,6 +20,21 @@ import (
 	"strings"
 )
 
+// Chapter 13.4
+func macMatches(message, key, checksum string) bool {
+	message += key
+	h := sha256.New()
+	h.Write([]byte(message))
+	return checksum == fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// Chapter 13.1
+func checksumMatches(message string, checksum string) bool {
+	hash := sha256.New()
+	hash.Write([]byte(message))
+	return checksum == fmt.Sprintf("%x", hash.Sum(nil))
+}
+
 // Chapter 12.10
 func hashFunc(input []byte) [4]byte {
 	rotated := []uint8{}
