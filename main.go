@@ -20,6 +20,42 @@ import (
 	"strings"
 )
 
+// Chapter 13.10
+func createECDSAMessage(message string, privateKey *ecdsa.PrivateKey) (string, error) {
+	hash := sha256.New()
+	hash.Write([]byte(message))
+	signature, err := ecdsa.SignASN1(rand.Reader, privateKey, hash.Sum(nil))
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%v.%x", message, signature), nil
+}
+
+// Chapter 13.7
+func hmac(message, key string) string {
+	// Split key
+	first := key[:len(key)/2]
+	second := key[len(key)/2:]
+
+	// Hash second half key with message
+	hash := sha256.New()
+	hash.Write([]byte(second + message))
+	hashSecondAndMsg := hash.Sum(nil)
+
+	// First half key into bytes
+	allByte := []byte(first)
+
+	// Concatenate first half with hashed second half and key
+	allByte = append(allByte, hashSecondAndMsg...)
+
+	// Hash all
+	hash2 := sha256.New()
+	hash2.Write([]byte(allByte))
+	hashSecond := hash2.Sum(nil)
+
+	return fmt.Sprintf("%x", hashSecond)
+}
+
 // Chapter 13.4
 func macMatches(message, key, checksum string) bool {
 	message += key
