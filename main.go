@@ -9,6 +9,8 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -17,8 +19,66 @@ import (
 	"math"
 	"math/big"
 	"math/bits"
+	"strconv"
 	"strings"
+
+	"golang.org/x/crypto/argon2"
 )
+
+const (
+	timeCost    uint32 = 3
+	memoryCost  uint32 = 32 * 1024
+	parallelism uint8  = 4
+	keyLen             = 32
+	saltLen            = 16
+)
+
+func hashPassword(password string) (string, error) {
+	salt := make([]byte, 16)
+	rand.Read(salt)
+
+	key := argon2.IDKey([]byte(password), salt, timeCost, memoryCost, parallelism, keyLen)
+	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
+	b64Key := base64.RawStdEncoding.EncodeToString(key)
+
+	return fmt.Sprintf("$argon2id$v=19$m=32768,t=3,p=4$%v$%v", b64Salt, b64Key), nil
+}
+
+func checkPasswordHash(password, hash string) bool {
+	parts := strings.Split(hash, "$")
+	if len(parts) != 6 || parts[1] != "argon2id" || parts[2] != "v=19" {
+		return false
+	}
+
+	part3Split := strings.Split(parts[3], ",")
+	if len(part3Split) != 3 {
+		return false
+	}
+	m, err := strconv.ParseUint(part3Split[0][2:], 10, 32)
+	if err != nil || part3Split[0][2:] != "m=" {
+		return false
+	}
+	t, err := strconv.ParseUint(part3Split[1][2:], 10, 32)
+	if err != nil || part3Split[1][2:] != "t=" {
+		return false
+	}
+	p, err := strconv.ParseUint(part3Split[2][2:], 10, 8)
+	if err != nil || part3Split[2][2:] != "p=" {
+		return false
+	}
+
+	salt, err := base64.RawStdEncoding.DecodeString(parts[4])
+	if err != nil {
+		return false
+	}
+	want, err := base64.RawStdEncoding.DecodeString(parts[5])
+	if err != nil {
+		return false
+	}
+	got := argon2.IDKey([]byte(password), salt, uint32(t), uint32(m), uint8(p), uint32(len(want)))
+
+	return subtle.ConstantTimeCompare(got, want) == 1
+}
 
 // Chapter 13.10
 func createECDSAMessage(message string, privateKey *ecdsa.PrivateKey) (string, error) {
