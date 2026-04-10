@@ -25,6 +25,23 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
+// Chapter 14.6
+func generateSalt(length int) ([]byte, error) {
+	bytes := make([]byte, length)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return nil, err
+	}
+	return bytes, nil
+}
+
+func hashNewPassword(password, salt []byte) []byte {
+	password = append(password, salt...)
+	hash := sha256.Sum256(password)
+	return hash[:]
+}
+
+// Chapter 14.3
 const (
 	timeCost    uint32 = 3
 	memoryCost  uint32 = 32 * 1024
